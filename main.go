@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"task-manager/internal/api"
+	"task-manager/internal/service"
 )
 
 const (
@@ -11,12 +12,12 @@ const (
 )
 
 func main() {
-	h := api.NewHandler()
+	s := service.NewService()
+	h := api.NewHandler(s)
 
 	server := api.NewServer(port, h)
 	err := server.Start()
 	if err != nil {
-		fmt.Errorf("start server error")
-		return
+		log.Fatal("start server error")
 	}
 }
