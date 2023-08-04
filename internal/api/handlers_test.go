@@ -51,6 +51,7 @@ func TestHandler_AddTask(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { db.Close() })
 
 	repo := repository.NewRepository(db)
 	s := service.NewService(repo)

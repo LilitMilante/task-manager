@@ -12,7 +12,6 @@ func ConnectToPostgres(dsn string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer db.Close()
 
 	err = db.Ping()
 	if err != nil {

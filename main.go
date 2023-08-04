@@ -27,6 +27,7 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
+	defer db.Close()
 
 	repo := repository.NewRepository(db)
 	s := service.NewService(repo)
