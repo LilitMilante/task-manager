@@ -13,6 +13,7 @@ func NewServer(port string, h *Handler) *Server {
 	r := http.NewServeMux()
 
 	r.HandleFunc("/tasks", h.AddTask)
+	r.HandleFunc("/task", h.TaskByID)
 
 	srv := &http.Server{
 		Addr:    ":" + port,

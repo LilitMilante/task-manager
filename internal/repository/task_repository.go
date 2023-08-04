@@ -5,6 +5,8 @@ import (
 	"database/sql"
 
 	"task-manager/internal/api/entity"
+
+	"github.com/google/uuid"
 )
 
 type Repository struct {
@@ -24,4 +26,15 @@ func (r *Repository) AddTask(ctx context.Context, task entity.Task) error {
 	}
 
 	return nil
+}
+
+func (r *Repository) TaskByID(ctx context.Context, id uuid.UUID) (task entity.Task, err error) {
+	q := `SELECT id, name, description, created_at FROM tasks WHERE id = $1`
+
+	err = r.db.QueryRowContext(ctx, q, id).Scan(&task.ID, &task.Name, &task.Description, &task.CreatedAt)
+	if err != nil {
+		return entity.Task{}, err
+	}
+
+	return task, nil
 }
