@@ -26,7 +26,7 @@ func NewService(repo Repository) *Service {
 
 func (s *Service) AddTask(ctx context.Context, task entity.Task) (entity.Task, error) {
 	task.ID = uuid.New()
-	task.CreatedAt = time.Now()
+	task.CreatedAt = time.Now().UTC()
 
 	err := s.repo.AddTask(ctx, task)
 	if err != nil {

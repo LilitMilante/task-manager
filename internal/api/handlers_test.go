@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"task-manager/internal/api/entity"
@@ -37,6 +38,8 @@ func TestHandler_AddTask(t *testing.T) {
 	s := service.NewService(repo)
 	handler := NewHandler(s)
 
+	// Add task
+
 	task := entity.Task{
 		Name:        "test",
 		Description: "test test test",
@@ -51,7 +54,7 @@ func TestHandler_AddTask(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	handler.AddTask(w, r)
-	require.Equal(t, w.Code, http.StatusOK)
+	require.Equal(t, http.StatusOK, w.Code)
 
 	var got entity.Task
 	err = json.NewDecoder(w.Body).Decode(&got)
@@ -62,5 +65,23 @@ func TestHandler_AddTask(t *testing.T) {
 
 	require.NotZero(t, got.ID)
 	require.NotZero(t, got.CreatedAt)
+	require.Equal(t, task, got)
+
+	// Get created task by ID
+
+	r, err = http.NewRequest(http.MethodGet, "/task", nil)
+	require.NoError(t, err)
+	v := url.Values{}
+	v.Add("id", got.ID.String())
+	r.URL.RawQuery = v.Encode()
+
+	w = httptest.NewRecorder()
+	handler.TaskByID(w, r)
+	require.Equal(t, http.StatusOK, w.Code)
+
+	got = entity.Task{}
+	err = json.NewDecoder(w.Body).Decode(&got)
+	require.NoError(t, err)
+
 	require.Equal(t, task, got)
 }

@@ -64,7 +64,7 @@ func (h *Handler) TaskByID(w http.ResponseWriter, r *http.Request) {
 
 	qParam := r.URL.Query().Get("id")
 
-	id, err := uuid.FromBytes([]byte(qParam))
+	id, err := uuid.Parse(qParam)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, err)
