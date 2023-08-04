@@ -2,10 +2,12 @@ package entity
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Task struct {
-	ID          int64
+	ID          uuid.UUID
 	Name        string
 	Description string
 	CreatedAt   time.Time

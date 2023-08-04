@@ -5,19 +5,32 @@ import (
 	"time"
 
 	"task-manager/internal/api/entity"
+
+	"github.com/google/uuid"
 )
 
-type Service struct{}
+type Repository interface {
+	AddTask(ctx context.Context, task entity.Task) error
+}
 
-func NewService() *Service {
-	return &Service{}
+type Service struct {
+	repo Repository
+}
+
+func NewService(repo Repository) *Service {
+	return &Service{
+		repo: repo,
+	}
 }
 
 func (s *Service) AddTask(ctx context.Context, task entity.Task) (entity.Task, error) {
-	return entity.Task{
-		ID:          1,
-		Name:        task.Name,
-		Description: task.Description,
-		CreatedAt:   time.Now(),
-	}, nil
+	task.ID = uuid.New()
+	task.CreatedAt = time.Now()
+
+	err := s.repo.AddTask(ctx, task)
+	if err != nil {
+		return entity.Task{}, err
+	}
+
+	return task, nil
 }

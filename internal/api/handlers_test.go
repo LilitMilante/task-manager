@@ -3,13 +3,26 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
 
 	"task-manager/internal/api/entity"
+	"task-manager/internal/app"
+	"task-manager/internal/repository"
 	"task-manager/internal/service"
+
+	"github.com/google/uuid"
+)
+
+const (
+	dbHost   = "localhost"
+	dbPort   = 5432
+	user     = "postgres"
+	password = "your-password"
+	dbName   = "task-manager"
 )
 
 func TestHandler_AddTask(t *testing.T) {
@@ -31,7 +44,16 @@ func TestHandler_AddTask(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	s := service.NewService()
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		dbHost, dbPort, user, password, dbName)
+
+	db, err := app.ConnectToPostgres(dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	repo := repository.NewRepository(db)
+	s := service.NewService(repo)
 	handler := NewHandler(s)
 
 	handler.AddTask(w, r)
@@ -46,7 +68,7 @@ func TestHandler_AddTask(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if got.ID == 0 {
+	if got.ID == uuid.Nil {
 		t.Error("ID is zero")
 	}
 
