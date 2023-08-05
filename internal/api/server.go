@@ -14,6 +14,7 @@ func NewServer(port string, h *Handler) *Server {
 
 	r.HandleFunc("/tasks", h.AddTask)
 	r.HandleFunc("/task", h.TaskByID)
+	r.HandleFunc("/alltasks", h.Tasks)
 
 	srv := &http.Server{
 		Addr:    ":" + port,

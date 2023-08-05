@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -26,17 +27,7 @@ const (
 )
 
 func TestHandler_AddTask(t *testing.T) {
-	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		dbHost, dbPort, user, password, dbName)
-
-	db, err := app.ConnectToPostgres(dsn)
-	require.NoError(t, err)
-
-	t.Cleanup(func() { db.Close() })
-
-	repo := repository.NewRepository(db)
-	s := service.NewService(repo)
-	handler := NewHandler(s)
+	handler := newHandler(t)
 
 	// Add task
 
@@ -84,4 +75,63 @@ func TestHandler_AddTask(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, task, got)
+}
+func TestHandler_Tasks(t *testing.T) {
+	expected := []entity.Task{
+		{
+			Name:        "test1",
+			Description: "test t1",
+		},
+		{
+			Name:        "test2",
+			Description: "test t2",
+		},
+	}
+
+	handler := newHandler(t, func(db *sql.DB) {
+		_, err := db.Exec("DELETE FROM tasks")
+		require.NoError(t, err)
+	})
+
+	r, err := http.NewRequest(http.MethodGet, "/alltasks", nil)
+	require.NoError(t, err)
+
+	w := httptest.NewRecorder()
+
+	for i, v := range expected {
+		task, err := handler.s.AddTask(r.Context(), v)
+		require.NoError(t, err)
+
+		expected[i].ID = task.ID
+		expected[i].CreatedAt = task.CreatedAt
+	}
+
+	handler.Tasks(w, r)
+	require.Equal(t, http.StatusOK, w.Code, w.Body)
+
+	var got []entity.Task
+	err = json.NewDecoder(w.Body).Decode(&got)
+	require.NoError(t, err)
+
+	require.Equal(t, expected, got)
+}
+
+func newHandler(t *testing.T, fns ...func(db *sql.DB)) *Handler {
+	t.Helper()
+
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		dbHost, dbPort, user, password, dbName)
+
+	db, err := app.ConnectToPostgres(dsn)
+	require.NoError(t, err)
+
+	for _, fn := range fns {
+		fn(db)
+	}
+
+	t.Cleanup(func() { db.Close() })
+
+	repo := repository.NewRepository(db)
+	s := service.NewService(repo)
+	return NewHandler(s)
 }

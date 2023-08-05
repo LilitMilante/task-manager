@@ -14,6 +14,7 @@ import (
 type Service interface {
 	AddTask(ctx context.Context, task entity.Task) (entity.Task, error)
 	TaskByID(ctx context.Context, id uuid.UUID) (entity.Task, error)
+	Tasks(ctx context.Context) ([]entity.Task, error)
 }
 
 type Handler struct {
@@ -79,6 +80,27 @@ func (h *Handler) TaskByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = json.NewEncoder(w).Encode(task)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, err)
+		return
+	}
+}
+
+func (h *Handler) Tasks(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	tasks, err := h.s.Tasks(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, err)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(tasks)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, err)

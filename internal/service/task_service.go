@@ -12,6 +12,7 @@ import (
 type Repository interface {
 	AddTask(ctx context.Context, task entity.Task) error
 	TaskByID(ctx context.Context, id uuid.UUID) (entity.Task, error)
+	Tasks(ctx context.Context) ([]entity.Task, error)
 }
 
 type Service struct {
@@ -38,4 +39,8 @@ func (s *Service) AddTask(ctx context.Context, task entity.Task) (entity.Task, e
 
 func (s *Service) TaskByID(ctx context.Context, id uuid.UUID) (entity.Task, error) {
 	return s.repo.TaskByID(ctx, id)
+}
+
+func (s *Service) Tasks(ctx context.Context) ([]entity.Task, error) {
+	return s.repo.Tasks(ctx)
 }

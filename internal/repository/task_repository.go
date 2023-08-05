@@ -38,3 +38,27 @@ func (r *Repository) TaskByID(ctx context.Context, id uuid.UUID) (task entity.Ta
 
 	return task, nil
 }
+
+func (r *Repository) Tasks(ctx context.Context) (tasks []entity.Task, err error) {
+	q := `SELECT id, name, description, created_at FROM tasks`
+
+	rows, err := r.db.QueryContext(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var task entity.Task
+
+		err := rows.Scan(&task.ID, &task.Name, &task.Description, &task.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		tasks = append(tasks, task)
+	}
+
+	return tasks, nil
+}
