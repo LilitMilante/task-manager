@@ -105,3 +105,10 @@ func (h *Handler) SendJsonError(w http.ResponseWriter, code int, err error) {
 		return
 	}
 }
+
+func (h *Handler) LoggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h.l.Infof("%s %s", r.Method, r.URL.Path)
+		next.ServeHTTP(w, r)
+	})
+}

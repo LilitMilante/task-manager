@@ -14,6 +14,8 @@ type Server struct {
 func NewServer(port string, h *Handler) *Server {
 	r := mux.NewRouter()
 
+	r.Use(h.LoggingMiddleware)
+
 	r.HandleFunc("/tasks", h.AddTask).Methods(http.MethodPost)
 	r.HandleFunc("/tasks/{id}", h.TaskByID).Methods(http.MethodGet)
 	r.HandleFunc("/tasks", h.Tasks).Methods(http.MethodGet)
