@@ -96,7 +96,7 @@ func TestHandler_Tasks(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	r, err := http.NewRequest(http.MethodGet, "/alltasks", nil)
+	r, err := http.NewRequest(http.MethodGet, "/tasks", nil)
 	require.NoError(t, err)
 
 	w := httptest.NewRecorder()
@@ -119,7 +119,7 @@ func TestHandler_Tasks(t *testing.T) {
 	require.Equal(t, expected, got)
 }
 
-func TestHandler_TaskByID(t *testing.T) {
+func TestHandler_TaskByID_Error(t *testing.T) {
 	handler := newHandler(t)
 
 	id := uuid.New().String()

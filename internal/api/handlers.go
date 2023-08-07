@@ -45,11 +45,7 @@ func (h *Handler) AddTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(task)
-	if err != nil {
-		h.SendJsonError(w, http.StatusInternalServerError, err)
-		return
-	}
+	h.SendJson(w, task)
 }
 
 func (h *Handler) TaskByID(w http.ResponseWriter, r *http.Request) {
@@ -65,11 +61,7 @@ func (h *Handler) TaskByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(task)
-	if err != nil {
-		h.SendJsonError(w, http.StatusInternalServerError, err)
-		return
-	}
+	h.SendJson(w, task)
 }
 
 func (h *Handler) Tasks(w http.ResponseWriter, r *http.Request) {
@@ -79,11 +71,7 @@ func (h *Handler) Tasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(tasks)
-	if err != nil {
-		h.SendJsonError(w, http.StatusInternalServerError, err)
-		return
-	}
+	h.SendJson(w, tasks)
 }
 
 type JSONErr struct {
@@ -92,13 +80,27 @@ type JSONErr struct {
 
 func (h *Handler) SendJsonError(w http.ResponseWriter, code int, err error) {
 	w.WriteHeader(code)
-	w.Header().Set("Content-Type", "application/json")
 
 	resp := JSONErr{
 		err.Error(),
 	}
 
-	err = json.NewEncoder(w).Encode(resp)
+	h.SendJson(w, resp)
+}
+
+func (h *Handler) SendJson(w http.ResponseWriter, data any) {
+	w.Header().Set("Content-Type", "application/json")
+
+	resp, err := json.Marshal(data)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		h.l.Error(err)
+		return
+	}
+
+	h.l.Infow("send response", "response", string(resp))
+
+	_, err = w.Write(resp)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		h.l.Error(err)
