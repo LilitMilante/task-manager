@@ -91,6 +91,7 @@ func TestHandler_Tasks(t *testing.T) {
 	}
 
 	handler := newHandler(t, func(db *sql.DB) {
+		//goland:noinspection SqlWithoutWhere
 		_, err := db.Exec("DELETE FROM tasks")
 		require.NoError(t, err)
 	})
@@ -152,7 +153,10 @@ func newHandler(t *testing.T, fns ...func(db *sql.DB)) *Handler {
 		fn(db)
 	}
 
-	t.Cleanup(func() { db.Close() })
+	t.Cleanup(func() {
+		err := db.Close()
+		require.NoError(t, err)
+	})
 
 	repo := repository.NewRepository(db)
 	s := service.NewService(repo)

@@ -1,7 +1,9 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
+	"log"
 
 	"task-manager/internal/api"
 	"task-manager/internal/app"
@@ -22,7 +24,14 @@ const (
 
 func main() {
 	baseLogger, _ := zap.NewDevelopment()
-	defer baseLogger.Sync()
+
+	defer func() {
+		err := baseLogger.Sync()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
 	l := baseLogger.Sugar()
 
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
@@ -32,7 +41,12 @@ func main() {
 	if err != nil {
 		l.Panicf("connect to postgres: %s", err)
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			l.Warnw("close DB", zap.Error(err))
+		}
+	}(db)
 
 	repo := repository.NewRepository(db)
 	s := service.NewService(repo)
