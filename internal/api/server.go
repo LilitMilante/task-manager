@@ -3,6 +3,8 @@ package api
 import (
 	"context"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 type Server struct {
@@ -10,11 +12,11 @@ type Server struct {
 }
 
 func NewServer(port string, h *Handler) *Server {
-	r := http.NewServeMux()
+	r := mux.NewRouter()
 
-	r.HandleFunc("/tasks", h.AddTask)
-	r.HandleFunc("/task", h.TaskByID)
-	r.HandleFunc("/alltasks", h.Tasks)
+	r.HandleFunc("/tasks", h.AddTask).Methods(http.MethodPost)
+	r.HandleFunc("/tasks/{id}", h.TaskByID).Methods(http.MethodGet)
+	r.HandleFunc("/tasks", h.Tasks).Methods(http.MethodGet)
 
 	srv := &http.Server{
 		Addr:    ":" + port,

@@ -9,6 +9,7 @@ import (
 	"task-manager/internal/api/entity"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 type Service interface {
@@ -28,11 +29,6 @@ func NewHandler(s Service) *Handler {
 }
 
 func (h *Handler) AddTask(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
 	var task entity.Task
 
 	err := json.NewDecoder(r.Body).Decode(&task)
@@ -58,14 +54,7 @@ func (h *Handler) AddTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) TaskByID(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	qParam := r.URL.Query().Get("id")
-
-	id, err := uuid.Parse(qParam)
+	id, err := uuid.Parse(mux.Vars(r)["id"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, err)
@@ -88,11 +77,6 @@ func (h *Handler) TaskByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Tasks(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
 	tasks, err := h.s.Tasks(r.Context())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

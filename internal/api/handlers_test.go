@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"testing"
 
 	"task-manager/internal/api/entity"
@@ -15,6 +14,7 @@ import (
 	"task-manager/internal/repository"
 	"task-manager/internal/service"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
 )
 
@@ -60,11 +60,11 @@ func TestHandler_AddTask(t *testing.T) {
 
 	// Get created task by ID
 
-	r, err = http.NewRequest(http.MethodGet, "/task", nil)
+	id := task.ID.String()
+
+	r, err = http.NewRequest(http.MethodGet, "/tasks/"+id, nil)
 	require.NoError(t, err)
-	v := url.Values{}
-	v.Add("id", got.ID.String())
-	r.URL.RawQuery = v.Encode()
+	r = mux.SetURLVars(r, map[string]string{"id": id})
 
 	w = httptest.NewRecorder()
 	handler.TaskByID(w, r)
