@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"task-manager/internal/api"
 	"task-manager/internal/app"
 	"task-manager/internal/repository"
 	"task-manager/internal/service"
+
+	"go.uber.org/zap"
 )
 
 const (
@@ -20,22 +21,28 @@ const (
 )
 
 func main() {
+	baseLogger, _ := zap.NewDevelopment()
+	defer baseLogger.Sync()
+	l := baseLogger.Sugar()
+
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		dbHost, dbPort, user, password, dbName)
 
 	db, err := app.ConnectToPostgres(dsn)
 	if err != nil {
-		log.Panic(err)
+		l.Panicf("connect to postgres: %s", err)
 	}
 	defer db.Close()
 
 	repo := repository.NewRepository(db)
 	s := service.NewService(repo)
-	h := api.NewHandler(s)
+	h := api.NewHandler(l, s)
 
 	server := api.NewServer(port, h)
+	l.Infof("server started on %s", port)
+
 	err = server.Start()
 	if err != nil {
-		log.Fatal("start server error")
+		l.Fatal("start server error")
 	}
 }

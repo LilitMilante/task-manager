@@ -3,13 +3,13 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"task-manager/internal/api/entity"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 )
 
 type Service interface {
@@ -19,11 +19,13 @@ type Service interface {
 }
 
 type Handler struct {
+	l *zap.SugaredLogger
 	s Service
 }
 
-func NewHandler(s Service) *Handler {
+func NewHandler(l *zap.SugaredLogger, s Service) *Handler {
 	return &Handler{
+		l: l,
 		s: s,
 	}
 }
@@ -99,7 +101,7 @@ func (h *Handler) SendJsonError(w http.ResponseWriter, code int, err error) {
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		log.Println(err)
+		h.l.Error(err)
 		return
 	}
 }

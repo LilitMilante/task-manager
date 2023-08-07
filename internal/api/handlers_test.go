@@ -17,6 +17,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 const (
@@ -155,5 +156,6 @@ func newHandler(t *testing.T, fns ...func(db *sql.DB)) *Handler {
 
 	repo := repository.NewRepository(db)
 	s := service.NewService(repo)
-	return NewHandler(s)
+	l := zap.NewNop().Sugar()
+	return NewHandler(l, s)
 }
