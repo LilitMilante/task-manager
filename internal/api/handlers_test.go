@@ -14,6 +14,7 @@ import (
 	"task-manager/internal/repository"
 	"task-manager/internal/service"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
 )
@@ -114,6 +115,27 @@ func TestHandler_Tasks(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, expected, got)
+}
+
+func TestHandler_TaskByID(t *testing.T) {
+	handler := newHandler(t)
+
+	id := uuid.New().String()
+	r, err := http.NewRequest(http.MethodGet, "/tasks/"+id, nil)
+	require.NoError(t, err)
+	r = mux.SetURLVars(r, map[string]string{"id": id})
+
+	w := httptest.NewRecorder()
+	handler.TaskByID(w, r)
+	require.Equal(t, http.StatusNotFound, w.Code)
+
+	exp := "sql: no rows in result set"
+	var got JSONErr
+
+	err = json.NewDecoder(w.Body).Decode(&got)
+	require.NoError(t, err)
+
+	require.Equal(t, exp, got.Error)
 }
 
 func newHandler(t *testing.T, fns ...func(db *sql.DB)) *Handler {

@@ -3,7 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 
 	"task-manager/internal/api/entity"
@@ -33,22 +33,19 @@ func (h *Handler) AddTask(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&task)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, err)
+		h.SendJsonError(w, http.StatusBadRequest, err)
 		return
 	}
 
 	task, err = h.s.AddTask(r.Context(), task)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, err)
+		h.SendJsonError(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	err = json.NewEncoder(w).Encode(task)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, err)
+		h.SendJsonError(w, http.StatusInternalServerError, err)
 		return
 	}
 }
@@ -56,22 +53,19 @@ func (h *Handler) AddTask(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) TaskByID(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(mux.Vars(r)["id"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, err)
+		h.SendJsonError(w, http.StatusBadRequest, err)
 		return
 	}
 
 	task, err := h.s.TaskByID(r.Context(), id)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, err)
+		h.SendJsonError(w, http.StatusNotFound, err)
 		return
 	}
 
 	err = json.NewEncoder(w).Encode(task)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, err)
+		h.SendJsonError(w, http.StatusInternalServerError, err)
 		return
 	}
 }
@@ -79,15 +73,33 @@ func (h *Handler) TaskByID(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Tasks(w http.ResponseWriter, r *http.Request) {
 	tasks, err := h.s.Tasks(r.Context())
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, err)
+		h.SendJsonError(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	err = json.NewEncoder(w).Encode(tasks)
 	if err != nil {
+		h.SendJsonError(w, http.StatusInternalServerError, err)
+		return
+	}
+}
+
+type JSONErr struct {
+	Error string `json:"error"`
+}
+
+func (h *Handler) SendJsonError(w http.ResponseWriter, code int, err error) {
+	w.WriteHeader(code)
+	w.Header().Set("Content-Type", "application/json")
+
+	resp := JSONErr{
+		err.Error(),
+	}
+
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, err)
+		log.Println(err)
 		return
 	}
 }
