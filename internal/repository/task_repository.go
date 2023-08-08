@@ -7,9 +7,11 @@ import (
 	"task-manager/internal/api/entity"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type Repository struct {
+	l  *zap.SugaredLogger
 	db *sql.DB
 }
 
@@ -18,9 +20,9 @@ func NewRepository(db *sql.DB) *Repository {
 }
 
 func (r *Repository) AddTask(ctx context.Context, task entity.Task) error {
-	q := `INSERT INTO tasks (id, name, description, created_at) VALUES ($1, $2, $3, $4)`
+	q := `INSERT INTO tasks (id, name, description, status, created_at, edited_at) VALUES ($1, $2, $3, $4, $5, $6)`
 
-	_, err := r.db.ExecContext(ctx, q, task.ID, task.Name, task.Description, task.CreatedAt)
+	_, err := r.db.ExecContext(ctx, q, task.ID, task.Name, task.Description, task.Status, task.CreatedAt, task.EditedAt)
 	if err != nil {
 		return err
 	}
@@ -29,9 +31,9 @@ func (r *Repository) AddTask(ctx context.Context, task entity.Task) error {
 }
 
 func (r *Repository) TaskByID(ctx context.Context, id uuid.UUID) (task entity.Task, err error) {
-	q := `SELECT id, name, description, created_at FROM tasks WHERE id = $1`
+	q := `SELECT id, name, description, status, created_at, edited_at FROM tasks WHERE id = $1`
 
-	err = r.db.QueryRowContext(ctx, q, id).Scan(&task.ID, &task.Name, &task.Description, &task.CreatedAt)
+	err = r.db.QueryRowContext(ctx, q, id).Scan(&task.ID, &task.Name, &task.Description, &task.Status, &task.CreatedAt, &task.EditedAt)
 	if err != nil {
 		return entity.Task{}, err
 	}
@@ -40,19 +42,24 @@ func (r *Repository) TaskByID(ctx context.Context, id uuid.UUID) (task entity.Ta
 }
 
 func (r *Repository) Tasks(ctx context.Context) (tasks []entity.Task, err error) {
-	q := `SELECT id, name, description, created_at FROM tasks`
+	q := `SELECT id, name, description, status, created_at, edited_at FROM tasks`
 
 	rows, err := r.db.QueryContext(ctx, q)
 	if err != nil {
 		return nil, err
 	}
 
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			r.l.Warnw("rows close", zap.Error(err))
+		}
+	}(rows)
 
 	for rows.Next() {
 		var task entity.Task
 
-		err := rows.Scan(&task.ID, &task.Name, &task.Description, &task.CreatedAt)
+		err := rows.Scan(&task.ID, &task.Name, &task.Description, &task.Status, &task.CreatedAt, &task.EditedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -61,4 +68,15 @@ func (r *Repository) Tasks(ctx context.Context) (tasks []entity.Task, err error)
 	}
 
 	return tasks, nil
+}
+
+func (r *Repository) UpdateTask(ctx context.Context, id uuid.UUID, updateTask entity.TaskUpdated) error {
+	q := `UPDATE tasks SET name = $1, description = $2, status = $3, edited_at = $4 WHERE id = $5`
+
+	_, err := r.db.ExecContext(ctx, q, updateTask.Name, updateTask.Description, updateTask.Status, updateTask.EditedAt, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

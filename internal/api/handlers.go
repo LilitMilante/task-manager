@@ -16,6 +16,7 @@ type Service interface {
 	AddTask(ctx context.Context, task entity.Task) (entity.Task, error)
 	TaskByID(ctx context.Context, id uuid.UUID) (entity.Task, error)
 	Tasks(ctx context.Context) ([]entity.Task, error)
+	UpdateTask(ctx context.Context, id uuid.UUID, updateTask entity.TaskUpdated) error
 }
 
 type Handler struct {
@@ -73,6 +74,30 @@ func (h *Handler) Tasks(w http.ResponseWriter, r *http.Request) {
 
 	h.SendJson(w, tasks)
 }
+
+func (h *Handler) UpdateTask(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(mux.Vars(r)["id"])
+	if err != nil {
+		h.SendJsonError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	var updateTask entity.TaskUpdated
+
+	err = json.NewDecoder(r.Body).Decode(&updateTask)
+	if err != nil {
+		h.SendJsonError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = h.s.UpdateTask(r.Context(), id, updateTask)
+	if err != nil {
+		h.SendJsonError(w, http.StatusInternalServerError, err)
+		return
+	}
+}
+
+//Helpers
 
 type JSONErr struct {
 	Error string `json:"error"`
