@@ -23,9 +23,9 @@ func NewRepository(l *zap.SugaredLogger, db *sql.DB) *Repository {
 }
 
 func (r *Repository) AddTask(ctx context.Context, task entity.Task) error {
-	q := `INSERT INTO tasks (id, name, description, status, created_at, edited_at) VALUES ($1, $2, $3, $4, $5, $6)`
+	q := `INSERT INTO tasks (id, name, description, is_completed, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)`
 
-	_, err := r.db.ExecContext(ctx, q, task.ID, task.Name, task.Description, task.Status, task.CreatedAt, task.EditedAt)
+	_, err := r.db.ExecContext(ctx, q, task.ID, task.Name, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt)
 	if err != nil {
 		return err
 	}
@@ -34,9 +34,9 @@ func (r *Repository) AddTask(ctx context.Context, task entity.Task) error {
 }
 
 func (r *Repository) TaskByID(ctx context.Context, id uuid.UUID) (task entity.Task, err error) {
-	q := `SELECT id, name, description, status, created_at, edited_at FROM tasks WHERE id = $1`
+	q := `SELECT id, name, description, is_completed, created_at, updated_at FROM tasks WHERE id = $1`
 
-	err = r.db.QueryRowContext(ctx, q, id).Scan(&task.ID, &task.Name, &task.Description, &task.Status, &task.CreatedAt, &task.EditedAt)
+	err = r.db.QueryRowContext(ctx, q, id).Scan(&task.ID, &task.Name, &task.Description, &task.IsCompleted, &task.CreatedAt, &task.UpdatedAt)
 	if err != nil {
 		return entity.Task{}, err
 	}
@@ -45,7 +45,7 @@ func (r *Repository) TaskByID(ctx context.Context, id uuid.UUID) (task entity.Ta
 }
 
 func (r *Repository) Tasks(ctx context.Context) (tasks []entity.Task, err error) {
-	q := `SELECT id, name, description, status, created_at, edited_at FROM tasks`
+	q := `SELECT id, name, description, is_completed, created_at, updated_at FROM tasks`
 
 	rows, err := r.db.QueryContext(ctx, q)
 	if err != nil {
@@ -62,7 +62,7 @@ func (r *Repository) Tasks(ctx context.Context) (tasks []entity.Task, err error)
 	for rows.Next() {
 		var task entity.Task
 
-		err := rows.Scan(&task.ID, &task.Name, &task.Description, &task.Status, &task.CreatedAt, &task.EditedAt)
+		err := rows.Scan(&task.ID, &task.Name, &task.Description, &task.IsCompleted, &task.CreatedAt, &task.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -74,9 +74,9 @@ func (r *Repository) Tasks(ctx context.Context) (tasks []entity.Task, err error)
 }
 
 func (r *Repository) UpdateTask(ctx context.Context, id uuid.UUID, updateTask entity.TaskUpdated) error {
-	q := `UPDATE tasks SET name = $1, description = $2, status = $3, edited_at = $4 WHERE id = $5`
+	q := `UPDATE tasks SET name = $1, description = $2, is_completed = $3, updated_at = $4 WHERE id = $5`
 
-	_, err := r.db.ExecContext(ctx, q, updateTask.Name, updateTask.Description, updateTask.Status, updateTask.EditedAt, id)
+	_, err := r.db.ExecContext(ctx, q, updateTask.Name, updateTask.Description, updateTask.IsCompleted, updateTask.UpdatedAt, id)
 	if err != nil {
 		return err
 	}

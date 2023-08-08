@@ -30,7 +30,7 @@ func (s *Service) AddTask(ctx context.Context, task entity.Task) (entity.Task, e
 	task.ID = uuid.New()
 	t := time.Now().UTC()
 	task.CreatedAt = t
-	task.EditedAt = t
+	task.UpdatedAt = t
 
 	err := s.repo.AddTask(ctx, task)
 	if err != nil {
@@ -49,7 +49,9 @@ func (s *Service) Tasks(ctx context.Context) ([]entity.Task, error) {
 }
 
 func (s *Service) UpdateTask(ctx context.Context, id uuid.UUID, updateTask entity.TaskUpdated) error {
-	updateTask.EditedAt = time.Now().UTC()
+	// проверить залачу что существует
+
+	updateTask.UpdatedAt = time.Now().UTC()
 
 	return s.repo.UpdateTask(ctx, id, updateTask)
 }

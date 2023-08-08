@@ -43,11 +43,11 @@ func TestHandler_AddTask(t *testing.T) {
 
 	exp.ID = got.ID
 	exp.CreatedAt = got.CreatedAt
-	exp.EditedAt = got.EditedAt
+	exp.UpdatedAt = got.UpdatedAt
 
 	require.NotZero(t, got.ID)
 	require.NotZero(t, got.CreatedAt)
-	require.NotZero(t, got.EditedAt)
+	require.NotZero(t, got.UpdatedAt)
 	require.Equal(t, exp, got)
 
 	// Get created task by ID
@@ -98,7 +98,7 @@ func TestHandler_Tasks(t *testing.T) {
 
 		expected[i].ID = task.ID
 		expected[i].CreatedAt = task.CreatedAt
-		expected[i].EditedAt = task.CreatedAt
+		expected[i].UpdatedAt = task.CreatedAt
 	}
 
 	handler.Tasks(w, r)
@@ -147,7 +147,7 @@ func TestHandler_UpdateTask(t *testing.T) {
 	updateTask := entity.TaskUpdated{
 		Name:        "TesT",
 		Description: "Test Test",
-		Status:      true,
+		IsCompleted: true,
 	}
 
 	// Update task
@@ -166,12 +166,12 @@ func TestHandler_UpdateTask(t *testing.T) {
 
 	task, err := handler.s.TaskByID(r.Context(), got.ID)
 
-	require.NotZero(t, task.EditedAt)
-	require.True(t, task.EditedAt.After(got.EditedAt))
+	require.NotZero(t, task.UpdatedAt)
+	require.True(t, task.UpdatedAt.After(got.UpdatedAt))
 
 	require.Equal(t, updateTask.Name, task.Name)
 	require.Equal(t, updateTask.Description, task.Description)
-	require.Equal(t, updateTask.Status, task.Status)
+	require.Equal(t, updateTask.IsCompleted, task.IsCompleted)
 }
 
 func addTask(t *testing.T, handler *Handler, exp entity.Task) (got entity.Task) {
