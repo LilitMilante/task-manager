@@ -28,6 +28,8 @@ const (
 	dbName   = "task-manager"
 )
 
+var l = zap.NewNop().Sugar()
+
 func TestHandler_AddTask(t *testing.T) {
 	handler := newHandler(t)
 
@@ -208,8 +210,7 @@ func newHandler(t *testing.T, fns ...func(db *sql.DB)) *Handler {
 		require.NoError(t, err)
 	})
 
-	repo := repository.NewRepository(db)
+	repo := repository.NewRepository(l, db)
 	s := service.NewService(repo)
-	l := zap.NewNop().Sugar()
 	return NewHandler(l, s)
 }

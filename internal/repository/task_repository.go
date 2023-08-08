@@ -15,8 +15,11 @@ type Repository struct {
 	db *sql.DB
 }
 
-func NewRepository(db *sql.DB) *Repository {
-	return &Repository{db: db}
+func NewRepository(l *zap.SugaredLogger, db *sql.DB) *Repository {
+	return &Repository{
+		l:  l,
+		db: db,
+	}
 }
 
 func (r *Repository) AddTask(ctx context.Context, task entity.Task) error {
