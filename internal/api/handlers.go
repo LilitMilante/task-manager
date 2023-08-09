@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"net/http"
 
+	v1 "task-manager/gen/proto/task/v1"
 	"task-manager/internal/api/entity"
 
+	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
@@ -24,6 +26,11 @@ type Handler struct {
 	s Service
 }
 
+func (h *Handler) AddTask(ctx context.Context, c *connect.Request[v1.AddTaskRequest]) (*connect.Response[v1.AddTaskResponse], error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func NewHandler(l *zap.SugaredLogger, s Service) *Handler {
 	return &Handler{
 		l: l,
@@ -31,23 +38,23 @@ func NewHandler(l *zap.SugaredLogger, s Service) *Handler {
 	}
 }
 
-func (h *Handler) AddTask(w http.ResponseWriter, r *http.Request) {
-	var task entity.Task
-
-	err := json.NewDecoder(r.Body).Decode(&task)
-	if err != nil {
-		h.SendJsonError(w, http.StatusBadRequest, err)
-		return
-	}
-
-	task, err = h.s.AddTask(r.Context(), task)
-	if err != nil {
-		h.SendJsonError(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	h.SendJson(w, task)
-}
+//func (h *Handler) AddTask(w http.ResponseWriter, r *http.Request) {
+//	var task entity.Task
+//
+//	err := json.NewDecoder(r.Body).Decode(&task)
+//	if err != nil {
+//		h.SendJsonError(w, http.StatusBadRequest, err)
+//		return
+//	}
+//
+//	task, err = h.s.AddTask(r.Context(), task)
+//	if err != nil {
+//		h.SendJsonError(w, http.StatusInternalServerError, err)
+//		return
+//	}
+//
+//	h.SendJson(w, task)
+//}
 
 func (h *Handler) TaskByID(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(mux.Vars(r)["id"])

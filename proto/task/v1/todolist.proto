@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package proto.task.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "task-manager/gen/proto/task/v1;todolistv1";
+
+service TaskService {
+  rpc AddTask(AddTaskRequest) returns (AddTaskResponse) {}
+}
+
+message AddTaskRequest {
+  string name = 1;
+  string description = 2;
+}
+
+message AddTaskResponse {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  bool is_completed = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
