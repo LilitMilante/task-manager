@@ -26,16 +26,24 @@ type Handler struct {
 	s Service
 }
 
-func (h *Handler) AddTask(ctx context.Context, c *connect.Request[v1.AddTaskRequest]) (*connect.Response[v1.AddTaskResponse], error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func NewHandler(l *zap.SugaredLogger, s Service) *Handler {
 	return &Handler{
 		l: l,
 		s: s,
 	}
+}
+
+func (h *Handler) AddTask(ctx context.Context, c *connect.Request[v1.AddTaskRequest]) (*connect.Response[v1.AddTaskResponse], error) {
+	task := TaskFromAPI(c.Msg)
+
+	task, err := h.s.AddTask(ctx, task)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := connect.NewResponse(TaskToAPI(task))
+
+	return resp, nil
 }
 
 //func (h *Handler) AddTask(w http.ResponseWriter, r *http.Request) {
