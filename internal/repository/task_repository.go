@@ -73,10 +73,21 @@ func (r *Repository) Tasks(ctx context.Context) (tasks []entity.Task, err error)
 	return tasks, nil
 }
 
-func (r *Repository) UpdateTask(ctx context.Context, id uuid.UUID, updateTask entity.TaskUpdated) error {
+func (r *Repository) UpdateTask(ctx context.Context, updateTask entity.TaskUpdated) error {
 	q := `UPDATE tasks SET name = $1, description = $2, is_completed = $3, updated_at = $4 WHERE id = $5`
 
-	_, err := r.db.ExecContext(ctx, q, updateTask.Name, updateTask.Description, updateTask.IsCompleted, updateTask.UpdatedAt, id)
+	_, err := r.db.ExecContext(ctx, q, updateTask.Name, updateTask.Description, updateTask.IsCompleted, updateTask.UpdatedAt, updateTask.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *Repository) DeleteTask(ctx context.Context, id uuid.UUID) error {
+	q := `DELETE FROM tasks WHERE id = $1`
+
+	_, err := r.db.ExecContext(ctx, q, id)
 	if err != nil {
 		return err
 	}

@@ -7,17 +7,18 @@ import (
 )
 
 type Task struct {
-	ID          uuid.UUID `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	IsCompleted bool      `json:"is_completed"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID          uuid.UUID
+	Name        string
+	Description string
+	IsCompleted bool
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type TaskUpdated struct {
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	IsCompleted bool      `json:"is_completed"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID          uuid.UUID
+	Name        string
+	Description string
+	IsCompleted bool
+	UpdatedAt   time.Time
 }

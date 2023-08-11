@@ -35,11 +35,20 @@ const (
 const (
 	// TaskServiceAddTaskProcedure is the fully-qualified name of the TaskService's AddTask RPC.
 	TaskServiceAddTaskProcedure = "/proto.task.v1.TaskService/AddTask"
+	// TaskServiceTaskByIDProcedure is the fully-qualified name of the TaskService's TaskByID RPC.
+	TaskServiceTaskByIDProcedure = "/proto.task.v1.TaskService/TaskByID"
+	// TaskServiceUpdateTaskProcedure is the fully-qualified name of the TaskService's UpdateTask RPC.
+	TaskServiceUpdateTaskProcedure = "/proto.task.v1.TaskService/UpdateTask"
+	// TaskServiceDeleteTaskProcedure is the fully-qualified name of the TaskService's DeleteTask RPC.
+	TaskServiceDeleteTaskProcedure = "/proto.task.v1.TaskService/DeleteTask"
 )
 
 // TaskServiceClient is a client for the proto.task.v1.TaskService service.
 type TaskServiceClient interface {
 	AddTask(context.Context, *connect.Request[v1.AddTaskRequest]) (*connect.Response[v1.AddTaskResponse], error)
+	TaskByID(context.Context, *connect.Request[v1.TaskByIDRequest]) (*connect.Response[v1.TaskByIDResponse], error)
+	UpdateTask(context.Context, *connect.Request[v1.UpdateTaskRequest]) (*connect.Response[v1.UpdateTaskResponse], error)
+	DeleteTask(context.Context, *connect.Request[v1.DeleteTaskRequest]) (*connect.Response[v1.DeleteTaskResponse], error)
 }
 
 // NewTaskServiceClient constructs a client for the proto.task.v1.TaskService service. By default,
@@ -57,12 +66,30 @@ func NewTaskServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			baseURL+TaskServiceAddTaskProcedure,
 			opts...,
 		),
+		taskByID: connect.NewClient[v1.TaskByIDRequest, v1.TaskByIDResponse](
+			httpClient,
+			baseURL+TaskServiceTaskByIDProcedure,
+			opts...,
+		),
+		updateTask: connect.NewClient[v1.UpdateTaskRequest, v1.UpdateTaskResponse](
+			httpClient,
+			baseURL+TaskServiceUpdateTaskProcedure,
+			opts...,
+		),
+		deleteTask: connect.NewClient[v1.DeleteTaskRequest, v1.DeleteTaskResponse](
+			httpClient,
+			baseURL+TaskServiceDeleteTaskProcedure,
+			opts...,
+		),
 	}
 }
 
 // taskServiceClient implements TaskServiceClient.
 type taskServiceClient struct {
-	addTask *connect.Client[v1.AddTaskRequest, v1.AddTaskResponse]
+	addTask    *connect.Client[v1.AddTaskRequest, v1.AddTaskResponse]
+	taskByID   *connect.Client[v1.TaskByIDRequest, v1.TaskByIDResponse]
+	updateTask *connect.Client[v1.UpdateTaskRequest, v1.UpdateTaskResponse]
+	deleteTask *connect.Client[v1.DeleteTaskRequest, v1.DeleteTaskResponse]
 }
 
 // AddTask calls proto.task.v1.TaskService.AddTask.
@@ -70,9 +97,27 @@ func (c *taskServiceClient) AddTask(ctx context.Context, req *connect.Request[v1
 	return c.addTask.CallUnary(ctx, req)
 }
 
+// TaskByID calls proto.task.v1.TaskService.TaskByID.
+func (c *taskServiceClient) TaskByID(ctx context.Context, req *connect.Request[v1.TaskByIDRequest]) (*connect.Response[v1.TaskByIDResponse], error) {
+	return c.taskByID.CallUnary(ctx, req)
+}
+
+// UpdateTask calls proto.task.v1.TaskService.UpdateTask.
+func (c *taskServiceClient) UpdateTask(ctx context.Context, req *connect.Request[v1.UpdateTaskRequest]) (*connect.Response[v1.UpdateTaskResponse], error) {
+	return c.updateTask.CallUnary(ctx, req)
+}
+
+// DeleteTask calls proto.task.v1.TaskService.DeleteTask.
+func (c *taskServiceClient) DeleteTask(ctx context.Context, req *connect.Request[v1.DeleteTaskRequest]) (*connect.Response[v1.DeleteTaskResponse], error) {
+	return c.deleteTask.CallUnary(ctx, req)
+}
+
 // TaskServiceHandler is an implementation of the proto.task.v1.TaskService service.
 type TaskServiceHandler interface {
 	AddTask(context.Context, *connect.Request[v1.AddTaskRequest]) (*connect.Response[v1.AddTaskResponse], error)
+	TaskByID(context.Context, *connect.Request[v1.TaskByIDRequest]) (*connect.Response[v1.TaskByIDResponse], error)
+	UpdateTask(context.Context, *connect.Request[v1.UpdateTaskRequest]) (*connect.Response[v1.UpdateTaskResponse], error)
+	DeleteTask(context.Context, *connect.Request[v1.DeleteTaskRequest]) (*connect.Response[v1.DeleteTaskResponse], error)
 }
 
 // NewTaskServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -86,10 +131,31 @@ func NewTaskServiceHandler(svc TaskServiceHandler, opts ...connect.HandlerOption
 		svc.AddTask,
 		opts...,
 	)
+	taskServiceTaskByIDHandler := connect.NewUnaryHandler(
+		TaskServiceTaskByIDProcedure,
+		svc.TaskByID,
+		opts...,
+	)
+	taskServiceUpdateTaskHandler := connect.NewUnaryHandler(
+		TaskServiceUpdateTaskProcedure,
+		svc.UpdateTask,
+		opts...,
+	)
+	taskServiceDeleteTaskHandler := connect.NewUnaryHandler(
+		TaskServiceDeleteTaskProcedure,
+		svc.DeleteTask,
+		opts...,
+	)
 	return "/proto.task.v1.TaskService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case TaskServiceAddTaskProcedure:
 			taskServiceAddTaskHandler.ServeHTTP(w, r)
+		case TaskServiceTaskByIDProcedure:
+			taskServiceTaskByIDHandler.ServeHTTP(w, r)
+		case TaskServiceUpdateTaskProcedure:
+			taskServiceUpdateTaskHandler.ServeHTTP(w, r)
+		case TaskServiceDeleteTaskProcedure:
+			taskServiceDeleteTaskHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -101,4 +167,16 @@ type UnimplementedTaskServiceHandler struct{}
 
 func (UnimplementedTaskServiceHandler) AddTask(context.Context, *connect.Request[v1.AddTaskRequest]) (*connect.Response[v1.AddTaskResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("proto.task.v1.TaskService.AddTask is not implemented"))
+}
+
+func (UnimplementedTaskServiceHandler) TaskByID(context.Context, *connect.Request[v1.TaskByIDRequest]) (*connect.Response[v1.TaskByIDResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("proto.task.v1.TaskService.TaskByID is not implemented"))
+}
+
+func (UnimplementedTaskServiceHandler) UpdateTask(context.Context, *connect.Request[v1.UpdateTaskRequest]) (*connect.Response[v1.UpdateTaskResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("proto.task.v1.TaskService.UpdateTask is not implemented"))
+}
+
+func (UnimplementedTaskServiceHandler) DeleteTask(context.Context, *connect.Request[v1.DeleteTaskRequest]) (*connect.Response[v1.DeleteTaskResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("proto.task.v1.TaskService.DeleteTask is not implemented"))
 }

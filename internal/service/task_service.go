@@ -13,7 +13,8 @@ type Repository interface {
 	AddTask(ctx context.Context, task entity.Task) error
 	TaskByID(ctx context.Context, id uuid.UUID) (entity.Task, error)
 	Tasks(ctx context.Context) ([]entity.Task, error)
-	UpdateTask(ctx context.Context, id uuid.UUID, updateTask entity.TaskUpdated) error
+	UpdateTask(ctx context.Context, updateTask entity.TaskUpdated) error
+	DeleteTask(ctx context.Context, id uuid.UUID) error
 }
 
 type Service struct {
@@ -48,10 +49,22 @@ func (s *Service) Tasks(ctx context.Context) ([]entity.Task, error) {
 	return s.repo.Tasks(ctx)
 }
 
-func (s *Service) UpdateTask(ctx context.Context, id uuid.UUID, updateTask entity.TaskUpdated) error {
-	// проверить залачу что существует
+func (s *Service) UpdateTask(ctx context.Context, updateTask entity.TaskUpdated) error {
+	_, err := s.repo.TaskByID(ctx, updateTask.ID)
+	if err != nil {
+		return err
+	}
 
 	updateTask.UpdatedAt = time.Now().UTC()
 
-	return s.repo.UpdateTask(ctx, id, updateTask)
+	return s.repo.UpdateTask(ctx, updateTask)
+}
+
+func (s *Service) DeleteTask(ctx context.Context, id uuid.UUID) error {
+	_, err := s.repo.TaskByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return s.repo.DeleteTask(ctx, id)
 }

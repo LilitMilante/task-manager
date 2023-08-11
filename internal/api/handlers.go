@@ -10,7 +10,6 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 )
 
@@ -18,7 +17,8 @@ type Service interface {
 	AddTask(ctx context.Context, task entity.Task) (entity.Task, error)
 	TaskByID(ctx context.Context, id uuid.UUID) (entity.Task, error)
 	Tasks(ctx context.Context) ([]entity.Task, error)
-	UpdateTask(ctx context.Context, id uuid.UUID, updateTask entity.TaskUpdated) error
+	UpdateTask(ctx context.Context, updateTask entity.TaskUpdated) error
+	DeleteTask(ctx context.Context, id uuid.UUID) error
 }
 
 type Handler struct {
@@ -46,38 +46,48 @@ func (h *Handler) AddTask(ctx context.Context, c *connect.Request[v1.AddTaskRequ
 	return resp, nil
 }
 
-//func (h *Handler) AddTask(w http.ResponseWriter, r *http.Request) {
-//	var task entity.Task
-//
-//	err := json.NewDecoder(r.Body).Decode(&task)
-//	if err != nil {
-//		h.SendJsonError(w, http.StatusBadRequest, err)
-//		return
-//	}
-//
-//	task, err = h.s.AddTask(r.Context(), task)
-//	if err != nil {
-//		h.SendJsonError(w, http.StatusInternalServerError, err)
-//		return
-//	}
-//
-//	h.SendJson(w, task)
-//}
-
-func (h *Handler) TaskByID(w http.ResponseWriter, r *http.Request) {
-	id, err := uuid.Parse(mux.Vars(r)["id"])
+func (h *Handler) TaskByID(ctx context.Context, c *connect.Request[v1.TaskByIDRequest]) (*connect.Response[v1.TaskByIDResponse], error) {
+	id, err := uuid.Parse(c.Msg.Id)
 	if err != nil {
-		h.SendJsonError(w, http.StatusBadRequest, err)
-		return
+		return nil, err
 	}
 
-	task, err := h.s.TaskByID(r.Context(), id)
+	task, err := h.s.TaskByID(ctx, id)
 	if err != nil {
-		h.SendJsonError(w, http.StatusNotFound, err)
-		return
+		return nil, err
 	}
 
-	h.SendJson(w, task)
+	resp := connect.NewResponse(TaskIDToAPI(task))
+
+	return resp, nil
+}
+
+func (h *Handler) UpdateTask(ctx context.Context, c *connect.Request[v1.UpdateTaskRequest]) (*connect.Response[v1.UpdateTaskResponse], error) {
+	updateTask, err := UpdateTaskFromAPI(c.Msg)
+	if err != nil {
+		return nil, err
+	}
+
+	err = h.s.UpdateTask(ctx, updateTask)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&v1.UpdateTaskResponse{}), nil
+}
+
+func (h *Handler) DeleteTask(ctx context.Context, c *connect.Request[v1.DeleteTaskRequest]) (*connect.Response[v1.DeleteTaskResponse], error) {
+	id, err := uuid.Parse(c.Msg.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	err = h.s.DeleteTask(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&v1.DeleteTaskResponse{}), nil
 }
 
 func (h *Handler) Tasks(w http.ResponseWriter, r *http.Request) {
@@ -90,27 +100,27 @@ func (h *Handler) Tasks(w http.ResponseWriter, r *http.Request) {
 	h.SendJson(w, tasks)
 }
 
-func (h *Handler) UpdateTask(w http.ResponseWriter, r *http.Request) {
-	id, err := uuid.Parse(mux.Vars(r)["id"])
-	if err != nil {
-		h.SendJsonError(w, http.StatusBadRequest, err)
-		return
-	}
-
-	var updateTask entity.TaskUpdated
-
-	err = json.NewDecoder(r.Body).Decode(&updateTask)
-	if err != nil {
-		h.SendJsonError(w, http.StatusBadRequest, err)
-		return
-	}
-
-	err = h.s.UpdateTask(r.Context(), id, updateTask)
-	if err != nil {
-		h.SendJsonError(w, http.StatusInternalServerError, err)
-		return
-	}
-}
+//func (h *Handler) UpdateTask(w http.ResponseWriter, r *http.Request) {
+//	id, err := uuid.Parse(mux.Vars(r)["id"])
+//	if err != nil {
+//		h.SendJsonError(w, http.StatusBadRequest, err)
+//		return
+//	}
+//
+//	var updateTask entity.TaskUpdated
+//
+//	err = json.NewDecoder(r.Body).Decode(&updateTask)
+//	if err != nil {
+//		h.SendJsonError(w, http.StatusBadRequest, err)
+//		return
+//	}
+//
+//	err = h.s.UpdateTask(r.Context(), id, updateTask)
+//	if err != nil {
+//		h.SendJsonError(w, http.StatusInternalServerError, err)
+//		return
+//	}
+//}
 
 //Helpers
 

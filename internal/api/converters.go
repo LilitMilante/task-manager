@@ -4,6 +4,7 @@ import (
 	todolistv1 "task-manager/gen/proto/task/v1"
 	"task-manager/internal/api/entity"
 
+	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -23,4 +24,31 @@ func TaskToAPI(task entity.Task) *todolistv1.AddTaskResponse {
 		CreatedAt:   timestamppb.New(task.CreatedAt),
 		UpdatedAt:   timestamppb.New(task.UpdatedAt),
 	}
+}
+
+func TaskIDToAPI(task entity.Task) *todolistv1.TaskByIDResponse {
+	return &todolistv1.TaskByIDResponse{
+		Id:          task.ID.String(),
+		Name:        task.Name,
+		Description: task.Description,
+		IsCompleted: task.IsCompleted,
+		CreatedAt:   timestamppb.New(task.CreatedAt),
+		UpdatedAt:   timestamppb.New(task.UpdatedAt),
+	}
+}
+
+func UpdateTaskFromAPI(updateTask *todolistv1.UpdateTaskRequest) (entity.TaskUpdated, error) {
+	id, err := uuid.Parse(updateTask.Id)
+	if err != nil {
+		return entity.TaskUpdated{}, err
+	}
+
+	task := entity.TaskUpdated{
+		ID:          id,
+		Name:        updateTask.Name,
+		Description: updateTask.Description,
+		IsCompleted: updateTask.IsCompleted,
+	}
+
+	return task, nil
 }

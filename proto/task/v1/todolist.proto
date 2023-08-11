@@ -8,6 +8,9 @@ option go_package = "task-manager/gen/proto/task/v1;todolistv1";
 
 service TaskService {
   rpc AddTask(AddTaskRequest) returns (AddTaskResponse) {}
+  rpc TaskByID(TaskByIDRequest) returns (TaskByIDResponse) {}
+  rpc UpdateTask(UpdateTaskRequest) returns (UpdateTaskResponse) {}
+  rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse) {}
 }
 
 message AddTaskRequest {
@@ -24,3 +27,30 @@ message AddTaskResponse {
   google.protobuf.Timestamp updated_at = 6;
 }
 
+message TaskByIDRequest {
+  string id = 1;
+}
+
+message TaskByIDResponse {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  bool is_completed = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message UpdateTaskRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  bool is_completed = 4;
+}
+
+message UpdateTaskResponse {}
+
+message DeleteTaskRequest {
+  string id = 1;
+}
+
+message DeleteTaskResponse {}
