@@ -15,19 +15,8 @@ func TaskFromAPI(request *todolistv1.AddTaskRequest) entity.Task {
 	}
 }
 
-func TaskToAPI(task entity.Task) *todolistv1.AddTaskResponse {
-	return &todolistv1.AddTaskResponse{
-		Id:          task.ID.String(),
-		Name:        task.Name,
-		Description: task.Description,
-		IsCompleted: task.IsCompleted,
-		CreatedAt:   timestamppb.New(task.CreatedAt),
-		UpdatedAt:   timestamppb.New(task.UpdatedAt),
-	}
-}
-
-func TaskIDToAPI(task entity.Task) *todolistv1.TaskByIDResponse {
-	return &todolistv1.TaskByIDResponse{
+func TaskToAPI(task entity.Task) *todolistv1.Task {
+	return &todolistv1.Task{
 		Id:          task.ID.String(),
 		Name:        task.Name,
 		Description: task.Description,
@@ -51,4 +40,13 @@ func UpdateTaskFromAPI(updateTask *todolistv1.UpdateTaskRequest) (entity.TaskUpd
 	}
 
 	return task, nil
+}
+
+func TasksToAPI(tasks []entity.Task) []*todolistv1.Task {
+	resp := make([]*todolistv1.Task, 0, len(tasks))
+	for _, v := range tasks {
+		resp = append(resp, TaskToAPI(v))
+	}
+
+	return resp
 }

@@ -11,6 +11,16 @@ service TaskService {
   rpc TaskByID(TaskByIDRequest) returns (TaskByIDResponse) {}
   rpc UpdateTask(UpdateTaskRequest) returns (UpdateTaskResponse) {}
   rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse) {}
+  rpc Tasks(TasksRequest) returns (TasksResponse) {}
+}
+
+message Task {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  bool is_completed = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
 }
 
 message AddTaskRequest {
@@ -19,12 +29,7 @@ message AddTaskRequest {
 }
 
 message AddTaskResponse {
-  string id = 1;
-  string name = 2;
-  string description = 3;
-  bool is_completed = 4;
-  google.protobuf.Timestamp created_at = 5;
-  google.protobuf.Timestamp updated_at = 6;
+ Task task = 1;
 }
 
 message TaskByIDRequest {
@@ -32,12 +37,7 @@ message TaskByIDRequest {
 }
 
 message TaskByIDResponse {
-  string id = 1;
-  string name = 2;
-  string description = 3;
-  bool is_completed = 4;
-  google.protobuf.Timestamp created_at = 5;
-  google.protobuf.Timestamp updated_at = 6;
+  Task task = 1;
 }
 
 message UpdateTaskRequest {
@@ -54,3 +54,9 @@ message DeleteTaskRequest {
 }
 
 message DeleteTaskResponse {}
+
+message TasksRequest {}
+
+message TasksResponse {
+  repeated Task tasks = 1;
+}

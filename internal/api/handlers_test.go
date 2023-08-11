@@ -65,21 +65,21 @@ func TestHandler_AddTask(t *testing.T) {
 	resp, err := client.AddTask(context.Background(), connect.NewRequest(addTaskReq))
 	require.NoError(t, err)
 
-	require.Equal(t, addTaskReq.Name, resp.Msg.Name)
-	require.Equal(t, addTaskReq.Description, resp.Msg.Description)
-	require.NotEmpty(t, resp.Msg.Id)
-	require.NotZero(t, resp.Msg.CreatedAt)
-	require.NotZero(t, resp.Msg.UpdatedAt)
+	require.Equal(t, addTaskReq.Name, resp.Msg.Task.Name)
+	require.Equal(t, addTaskReq.Description, resp.Msg.Task.Description)
+	require.NotEmpty(t, resp.Msg.Task.Id)
+	require.NotZero(t, resp.Msg.Task.CreatedAt)
+	require.NotZero(t, resp.Msg.Task.UpdatedAt)
 
 	// Get task by ID
 	getTaskReq := &todolistv1.TaskByIDRequest{
-		Id: resp.Msg.Id,
+		Id: resp.Msg.Task.Id,
 	}
 
 	taskByID, err := client.TaskByID(context.Background(), connect.NewRequest(getTaskReq))
 	require.NoError(t, err)
 
-	require.Equal(t, resp.Msg.Id, taskByID.Msg.Id)
+	require.Equal(t, resp.Msg.Task.Id, taskByID.Msg.Task.Id)
 }
 
 func TestHandler_UpdateTask(t *testing.T) {
@@ -96,7 +96,7 @@ func TestHandler_UpdateTask(t *testing.T) {
 
 	// Update task
 	updateTask := &todolistv1.UpdateTaskRequest{
-		Id:          task.Msg.Id,
+		Id:          task.Msg.Task.Id,
 		Name:        "TEST",
 		Description: "TEST test TEST",
 		IsCompleted: true,
@@ -107,17 +107,17 @@ func TestHandler_UpdateTask(t *testing.T) {
 
 	// Get update task
 	getTaskReq := &todolistv1.TaskByIDRequest{
-		Id: task.Msg.Id,
+		Id: task.Msg.Task.Id,
 	}
 
 	taskByID, err := client.TaskByID(context.Background(), connect.NewRequest(getTaskReq))
 	require.NoError(t, err)
 
-	require.Equal(t, updateTask.Id, taskByID.Msg.Id)
-	require.Equal(t, updateTask.Name, taskByID.Msg.Name)
-	require.Equal(t, updateTask.Description, taskByID.Msg.Description)
-	require.Equal(t, updateTask.IsCompleted, taskByID.Msg.IsCompleted)
-	require.Greater(t, taskByID.Msg.UpdatedAt.Nanos, task.Msg.UpdatedAt.Nanos)
+	require.Equal(t, updateTask.Id, taskByID.Msg.Task.Id)
+	require.Equal(t, updateTask.Name, taskByID.Msg.Task.Name)
+	require.Equal(t, updateTask.Description, taskByID.Msg.Task.Description)
+	require.Equal(t, updateTask.IsCompleted, taskByID.Msg.Task.IsCompleted)
+	require.Greater(t, taskByID.Msg.Task.UpdatedAt.Nanos, task.Msg.Task.UpdatedAt.Nanos)
 }
 
 func TestHandler_UpdateTask_Error(t *testing.T) {
@@ -149,14 +149,14 @@ func TestHandler_DeleteTask(t *testing.T) {
 
 	// Delete task
 	deleteTask := &todolistv1.DeleteTaskRequest{
-		Id: task.Msg.Id,
+		Id: task.Msg.Task.Id,
 	}
 	_, err = client.DeleteTask(context.Background(), connect.NewRequest(deleteTask))
 	require.NoError(t, err)
 
 	// Get delete task
 	getTaskReq := &todolistv1.TaskByIDRequest{
-		Id: task.Msg.Id,
+		Id: task.Msg.Task.Id,
 	}
 
 	_, err = client.TaskByID(context.Background(), connect.NewRequest(getTaskReq))
@@ -172,4 +172,36 @@ func TestHandler_DeleteTask_Error(t *testing.T) {
 	}
 	_, err := client.DeleteTask(context.Background(), connect.NewRequest(deleteTask))
 	require.Error(t, err)
+}
+
+func TestHandler_Tasks(t *testing.T) {
+	client := newClient(t)
+
+	// Add tasks
+	got := []*todolistv1.AddTaskRequest{
+		{
+			Name:        "Task1",
+			Description: "test task1",
+		},
+		{
+			Name:        "Task2",
+			Description: "test task2",
+		},
+	}
+
+	var exp []*todolistv1.Task
+
+	for _, v := range got {
+		task, err := client.AddTask(context.Background(), connect.NewRequest(v))
+		require.NoError(t, err)
+		exp = append(exp, task.Msg.Task)
+	}
+
+	// Get tasks
+	tasks, err := client.Tasks(context.Background(), connect.NewRequest(&todolistv1.TasksRequest{}))
+	require.NoError(t, err)
+
+	for _, v := range exp {
+		require.Contains(t, tasks.Msg.Tasks, v)
+	}
 }

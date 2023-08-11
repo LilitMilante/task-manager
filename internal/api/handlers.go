@@ -41,9 +41,7 @@ func (h *Handler) AddTask(ctx context.Context, c *connect.Request[v1.AddTaskRequ
 		return nil, err
 	}
 
-	resp := connect.NewResponse(TaskToAPI(task))
-
-	return resp, nil
+	return connect.NewResponse(&v1.AddTaskResponse{Task: TaskToAPI(task)}), nil
 }
 
 func (h *Handler) TaskByID(ctx context.Context, c *connect.Request[v1.TaskByIDRequest]) (*connect.Response[v1.TaskByIDResponse], error) {
@@ -57,9 +55,7 @@ func (h *Handler) TaskByID(ctx context.Context, c *connect.Request[v1.TaskByIDRe
 		return nil, err
 	}
 
-	resp := connect.NewResponse(TaskIDToAPI(task))
-
-	return resp, nil
+	return connect.NewResponse(&v1.TaskByIDResponse{Task: TaskToAPI(task)}), nil
 }
 
 func (h *Handler) UpdateTask(ctx context.Context, c *connect.Request[v1.UpdateTaskRequest]) (*connect.Response[v1.UpdateTaskResponse], error) {
@@ -90,37 +86,14 @@ func (h *Handler) DeleteTask(ctx context.Context, c *connect.Request[v1.DeleteTa
 	return connect.NewResponse(&v1.DeleteTaskResponse{}), nil
 }
 
-func (h *Handler) Tasks(w http.ResponseWriter, r *http.Request) {
-	tasks, err := h.s.Tasks(r.Context())
+func (h *Handler) Tasks(ctx context.Context, _ *connect.Request[v1.TasksRequest]) (*connect.Response[v1.TasksResponse], error) {
+	tasks, err := h.s.Tasks(ctx)
 	if err != nil {
-		h.SendJsonError(w, http.StatusInternalServerError, err)
-		return
+		return nil, err
 	}
 
-	h.SendJson(w, tasks)
+	return connect.NewResponse(&v1.TasksResponse{Tasks: TasksToAPI(tasks)}), nil
 }
-
-//func (h *Handler) UpdateTask(w http.ResponseWriter, r *http.Request) {
-//	id, err := uuid.Parse(mux.Vars(r)["id"])
-//	if err != nil {
-//		h.SendJsonError(w, http.StatusBadRequest, err)
-//		return
-//	}
-//
-//	var updateTask entity.TaskUpdated
-//
-//	err = json.NewDecoder(r.Body).Decode(&updateTask)
-//	if err != nil {
-//		h.SendJsonError(w, http.StatusBadRequest, err)
-//		return
-//	}
-//
-//	err = h.s.UpdateTask(r.Context(), id, updateTask)
-//	if err != nil {
-//		h.SendJsonError(w, http.StatusInternalServerError, err)
-//		return
-//	}
-//}
 
 //Helpers
 
