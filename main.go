@@ -49,10 +49,13 @@ func main() {
 	}(db)
 
 	repo := repository.NewRepository(l, db)
-	s := service.NewService(repo)
-	h := api.NewHandler(l, s)
+	taskService := service.NewTaskService(repo)
+	authService := service.NewAuthService(repo)
 
-	server := api.NewServer(port, h)
+	taskHandler := api.NewTaskHandler(l, taskService)
+	authHandler := api.NewAuthHandler(l, authService)
+
+	server := api.NewServer(l, port, taskHandler, authHandler)
 	l.Infof("server started on %s", port)
 
 	err = server.Start()

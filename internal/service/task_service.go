@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
-	"task-manager/internal/api/entity"
+	"task-manager/internal/entity"
 
 	"github.com/google/uuid"
 )
 
-type Repository interface {
+type TaskRepository interface {
 	AddTask(ctx context.Context, task entity.Task) error
 	TaskByID(ctx context.Context, id uuid.UUID) (entity.Task, error)
 	Tasks(ctx context.Context) ([]entity.Task, error)
@@ -17,17 +17,17 @@ type Repository interface {
 	DeleteTask(ctx context.Context, id uuid.UUID) error
 }
 
-type Service struct {
-	repo Repository
+type TaskService struct {
+	repo TaskRepository
 }
 
-func NewService(repo Repository) *Service {
-	return &Service{
+func NewTaskService(repo TaskRepository) *TaskService {
+	return &TaskService{
 		repo: repo,
 	}
 }
 
-func (s *Service) AddTask(ctx context.Context, task entity.Task) (entity.Task, error) {
+func (s *TaskService) AddTask(ctx context.Context, task entity.Task) (entity.Task, error) {
 	task.ID = uuid.New()
 	t := time.Now().UTC()
 	task.CreatedAt = t
@@ -41,15 +41,15 @@ func (s *Service) AddTask(ctx context.Context, task entity.Task) (entity.Task, e
 	return task, nil
 }
 
-func (s *Service) TaskByID(ctx context.Context, id uuid.UUID) (entity.Task, error) {
+func (s *TaskService) TaskByID(ctx context.Context, id uuid.UUID) (entity.Task, error) {
 	return s.repo.TaskByID(ctx, id)
 }
 
-func (s *Service) Tasks(ctx context.Context) ([]entity.Task, error) {
+func (s *TaskService) Tasks(ctx context.Context) ([]entity.Task, error) {
 	return s.repo.Tasks(ctx)
 }
 
-func (s *Service) UpdateTask(ctx context.Context, updateTask entity.TaskUpdated) error {
+func (s *TaskService) UpdateTask(ctx context.Context, updateTask entity.TaskUpdated) error {
 	_, err := s.repo.TaskByID(ctx, updateTask.ID)
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ func (s *Service) UpdateTask(ctx context.Context, updateTask entity.TaskUpdated)
 	return s.repo.UpdateTask(ctx, updateTask)
 }
 
-func (s *Service) DeleteTask(ctx context.Context, id uuid.UUID) error {
+func (s *TaskService) DeleteTask(ctx context.Context, id uuid.UUID) error {
 	_, err := s.repo.TaskByID(ctx, id)
 	if err != nil {
 		return err

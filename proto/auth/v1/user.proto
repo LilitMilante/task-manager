@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package proto.auth.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "task-manager/gen/proto/auth/v1;userv1";
+
+service AuthService {
+  rpc SigneUp(SigneUpRequest) returns (SigneUpResponse) {}
+}
+
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+message SigneUpRequest {
+  string name = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message SigneUpResponse {
+  User user = 1;
+}

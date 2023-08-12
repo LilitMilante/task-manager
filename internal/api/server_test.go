@@ -9,7 +9,7 @@ import (
 )
 
 func TestServerStart(t *testing.T) {
-	server := NewServer("8081", &Handler{})
+	server := NewServer(l, "8081", &TaskHandler{}, &AuthHandler{})
 	t.Cleanup(func() {
 		err := server.Shutdown(context.Background())
 		if err != nil {

@@ -2,7 +2,7 @@ package api
 
 import (
 	todolistv1 "task-manager/gen/proto/task/v1"
-	"task-manager/internal/api/entity"
+	"task-manager/internal/entity"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"task-manager/internal/api/entity"
+	"task-manager/internal/entity"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"

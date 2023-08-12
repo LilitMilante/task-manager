@@ -29,7 +29,7 @@ const (
 
 var l = zap.NewNop().Sugar()
 
-func newClient(t *testing.T) todolistv1connect.TaskServiceClient {
+func taskClient(t *testing.T) todolistv1connect.TaskServiceClient {
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		dbHost, dbPort, user, password, dbName)
 
@@ -42,8 +42,8 @@ func newClient(t *testing.T) todolistv1connect.TaskServiceClient {
 	})
 
 	repo := repository.NewRepository(l, db)
-	s := service.NewService(repo)
-	h := NewHandler(l, s)
+	s := service.NewTaskService(repo)
+	h := NewTaskHandler(l, s)
 
 	_, handler := todolistv1connect.NewTaskServiceHandler(h)
 
@@ -54,7 +54,7 @@ func newClient(t *testing.T) todolistv1connect.TaskServiceClient {
 }
 
 func TestHandler_AddTask(t *testing.T) {
-	client := newClient(t)
+	client := taskClient(t)
 
 	// Add task
 	addTaskReq := &todolistv1.AddTaskRequest{
@@ -83,7 +83,7 @@ func TestHandler_AddTask(t *testing.T) {
 }
 
 func TestHandler_UpdateTask(t *testing.T) {
-	client := newClient(t)
+	client := taskClient(t)
 
 	// Add task
 	addTaskReq := &todolistv1.AddTaskRequest{
@@ -121,7 +121,7 @@ func TestHandler_UpdateTask(t *testing.T) {
 }
 
 func TestHandler_UpdateTask_Error(t *testing.T) {
-	client := newClient(t)
+	client := taskClient(t)
 
 	// Update task
 	updateTask := &todolistv1.UpdateTaskRequest{
@@ -136,7 +136,7 @@ func TestHandler_UpdateTask_Error(t *testing.T) {
 }
 
 func TestHandler_DeleteTask(t *testing.T) {
-	client := newClient(t)
+	client := taskClient(t)
 
 	// Add task
 	addTaskReq := &todolistv1.AddTaskRequest{
@@ -164,7 +164,7 @@ func TestHandler_DeleteTask(t *testing.T) {
 }
 
 func TestHandler_DeleteTask_Error(t *testing.T) {
-	client := newClient(t)
+	client := taskClient(t)
 
 	// Delete task
 	deleteTask := &todolistv1.DeleteTaskRequest{
@@ -175,7 +175,7 @@ func TestHandler_DeleteTask_Error(t *testing.T) {
 }
 
 func TestHandler_Tasks(t *testing.T) {
-	client := newClient(t)
+	client := taskClient(t)
 
 	// Add tasks
 	got := []*todolistv1.AddTaskRequest{
