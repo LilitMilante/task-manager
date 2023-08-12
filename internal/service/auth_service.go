@@ -11,6 +11,9 @@ import (
 
 type AuthRepository interface {
 	CreateUser(ctx context.Context, user entity.User) error
+	SignIn(ctx context.Context, email, password string) (uuid.UUID, error)
+	CreateSession(ctx context.Context, session entity.Session) (uuid.UUID, error)
+	UserByEmail(ctx context.Context, email string) error
 }
 
 type AuthService struct {
@@ -24,12 +27,15 @@ func NewAuthService(repo AuthRepository) *AuthService {
 }
 
 func (a *AuthService) SignUp(ctx context.Context, user entity.User) (entity.User, error) {
-	//проверить сузесвует ли
+	err := a.repo.UserByEmail(ctx, user.Email)
+	if err != nil {
+		return entity.User{}, err
+	}
 
 	user.ID = uuid.New()
 	user.CreatedAt = time.Now().UTC()
 
-	err := a.repo.CreateUser(ctx, user)
+	err = a.repo.CreateUser(ctx, user)
 	if err != nil {
 		return entity.User{}, err
 	}
@@ -37,4 +43,19 @@ func (a *AuthService) SignUp(ctx context.Context, user entity.User) (entity.User
 	user.Password = ""
 
 	return user, nil
+}
+
+func (a *AuthService) SignIn(ctx context.Context, email, password string) (uuid.UUID, error) {
+	userID, err := a.repo.SignIn(ctx, email, password)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	session := entity.Session{
+		ID:        uuid.New(),
+		UserID:    userID,
+		CreatedAt: time.Now().UTC(),
+	}
+
+	return a.repo.CreateSession(ctx, session)
 }

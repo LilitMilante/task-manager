@@ -8,6 +8,7 @@ option go_package = "task-manager/gen/proto/auth/v1;userv1";
 
 service AuthService {
   rpc SigneUp(SigneUpRequest) returns (SigneUpResponse) {}
+  rpc SigneIn(SigneInRequest) returns (SigneInResponse) {}
 }
 
 message User {
@@ -26,3 +27,10 @@ message SigneUpRequest {
 message SigneUpResponse {
   User user = 1;
 }
+
+message SigneInRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message SigneInResponse {}
