@@ -7,7 +7,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func UserFromAPI(user *userv1.SigneUpRequest) entity.User {
+func UserFromAPI(user *userv1.SignUpRequest) entity.User {
 	return entity.User{
 		Name:     user.Name,
 		Email:    user.Email,

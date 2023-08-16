@@ -33,16 +33,16 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// AuthServiceSigneUpProcedure is the fully-qualified name of the AuthService's SigneUp RPC.
-	AuthServiceSigneUpProcedure = "/proto.auth.v1.AuthService/SigneUp"
-	// AuthServiceSigneInProcedure is the fully-qualified name of the AuthService's SigneIn RPC.
-	AuthServiceSigneInProcedure = "/proto.auth.v1.AuthService/SigneIn"
+	// AuthServiceSignUpProcedure is the fully-qualified name of the AuthService's SignUp RPC.
+	AuthServiceSignUpProcedure = "/proto.auth.v1.AuthService/SignUp"
+	// AuthServiceSignInProcedure is the fully-qualified name of the AuthService's SignIn RPC.
+	AuthServiceSignInProcedure = "/proto.auth.v1.AuthService/SignIn"
 )
 
 // AuthServiceClient is a client for the proto.auth.v1.AuthService service.
 type AuthServiceClient interface {
-	SigneUp(context.Context, *connect.Request[v1.SigneUpRequest]) (*connect.Response[v1.SigneUpResponse], error)
-	SigneIn(context.Context, *connect.Request[v1.SigneInRequest]) (*connect.Response[v1.SigneInResponse], error)
+	SignUp(context.Context, *connect.Request[v1.SignUpRequest]) (*connect.Response[v1.SignUpResponse], error)
+	SignIn(context.Context, *connect.Request[v1.SignInRequest]) (*connect.Response[v1.SignInResponse], error)
 }
 
 // NewAuthServiceClient constructs a client for the proto.auth.v1.AuthService service. By default,
@@ -55,14 +55,14 @@ type AuthServiceClient interface {
 func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) AuthServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &authServiceClient{
-		signeUp: connect.NewClient[v1.SigneUpRequest, v1.SigneUpResponse](
+		signUp: connect.NewClient[v1.SignUpRequest, v1.SignUpResponse](
 			httpClient,
-			baseURL+AuthServiceSigneUpProcedure,
+			baseURL+AuthServiceSignUpProcedure,
 			opts...,
 		),
-		signeIn: connect.NewClient[v1.SigneInRequest, v1.SigneInResponse](
+		signIn: connect.NewClient[v1.SignInRequest, v1.SignInResponse](
 			httpClient,
-			baseURL+AuthServiceSigneInProcedure,
+			baseURL+AuthServiceSignInProcedure,
 			opts...,
 		),
 	}
@@ -70,24 +70,24 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 
 // authServiceClient implements AuthServiceClient.
 type authServiceClient struct {
-	signeUp *connect.Client[v1.SigneUpRequest, v1.SigneUpResponse]
-	signeIn *connect.Client[v1.SigneInRequest, v1.SigneInResponse]
+	signUp *connect.Client[v1.SignUpRequest, v1.SignUpResponse]
+	signIn *connect.Client[v1.SignInRequest, v1.SignInResponse]
 }
 
-// SigneUp calls proto.auth.v1.AuthService.SigneUp.
-func (c *authServiceClient) SigneUp(ctx context.Context, req *connect.Request[v1.SigneUpRequest]) (*connect.Response[v1.SigneUpResponse], error) {
-	return c.signeUp.CallUnary(ctx, req)
+// SignUp calls proto.auth.v1.AuthService.SignUp.
+func (c *authServiceClient) SignUp(ctx context.Context, req *connect.Request[v1.SignUpRequest]) (*connect.Response[v1.SignUpResponse], error) {
+	return c.signUp.CallUnary(ctx, req)
 }
 
-// SigneIn calls proto.auth.v1.AuthService.SigneIn.
-func (c *authServiceClient) SigneIn(ctx context.Context, req *connect.Request[v1.SigneInRequest]) (*connect.Response[v1.SigneInResponse], error) {
-	return c.signeIn.CallUnary(ctx, req)
+// SignIn calls proto.auth.v1.AuthService.SignIn.
+func (c *authServiceClient) SignIn(ctx context.Context, req *connect.Request[v1.SignInRequest]) (*connect.Response[v1.SignInResponse], error) {
+	return c.signIn.CallUnary(ctx, req)
 }
 
 // AuthServiceHandler is an implementation of the proto.auth.v1.AuthService service.
 type AuthServiceHandler interface {
-	SigneUp(context.Context, *connect.Request[v1.SigneUpRequest]) (*connect.Response[v1.SigneUpResponse], error)
-	SigneIn(context.Context, *connect.Request[v1.SigneInRequest]) (*connect.Response[v1.SigneInResponse], error)
+	SignUp(context.Context, *connect.Request[v1.SignUpRequest]) (*connect.Response[v1.SignUpResponse], error)
+	SignIn(context.Context, *connect.Request[v1.SignInRequest]) (*connect.Response[v1.SignInResponse], error)
 }
 
 // NewAuthServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -96,22 +96,22 @@ type AuthServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	authServiceSigneUpHandler := connect.NewUnaryHandler(
-		AuthServiceSigneUpProcedure,
-		svc.SigneUp,
+	authServiceSignUpHandler := connect.NewUnaryHandler(
+		AuthServiceSignUpProcedure,
+		svc.SignUp,
 		opts...,
 	)
-	authServiceSigneInHandler := connect.NewUnaryHandler(
-		AuthServiceSigneInProcedure,
-		svc.SigneIn,
+	authServiceSignInHandler := connect.NewUnaryHandler(
+		AuthServiceSignInProcedure,
+		svc.SignIn,
 		opts...,
 	)
 	return "/proto.auth.v1.AuthService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case AuthServiceSigneUpProcedure:
-			authServiceSigneUpHandler.ServeHTTP(w, r)
-		case AuthServiceSigneInProcedure:
-			authServiceSigneInHandler.ServeHTTP(w, r)
+		case AuthServiceSignUpProcedure:
+			authServiceSignUpHandler.ServeHTTP(w, r)
+		case AuthServiceSignInProcedure:
+			authServiceSignInHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -121,10 +121,10 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 // UnimplementedAuthServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedAuthServiceHandler struct{}
 
-func (UnimplementedAuthServiceHandler) SigneUp(context.Context, *connect.Request[v1.SigneUpRequest]) (*connect.Response[v1.SigneUpResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("proto.auth.v1.AuthService.SigneUp is not implemented"))
+func (UnimplementedAuthServiceHandler) SignUp(context.Context, *connect.Request[v1.SignUpRequest]) (*connect.Response[v1.SignUpResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("proto.auth.v1.AuthService.SignUp is not implemented"))
 }
 
-func (UnimplementedAuthServiceHandler) SigneIn(context.Context, *connect.Request[v1.SigneInRequest]) (*connect.Response[v1.SigneInResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("proto.auth.v1.AuthService.SigneIn is not implemented"))
+func (UnimplementedAuthServiceHandler) SignIn(context.Context, *connect.Request[v1.SignInRequest]) (*connect.Response[v1.SignInResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("proto.auth.v1.AuthService.SignIn is not implemented"))
 }

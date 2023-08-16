@@ -44,13 +44,13 @@ func authClient(t *testing.T) userv1connect.AuthServiceClient {
 func TestAuthHandler_SigneUp(t *testing.T) {
 	client := authClient(t)
 
-	req := &userv1.SigneUpRequest{
+	req := &userv1.SignUpRequest{
 		Name:     "Nasta",
 		Email:    "example@gmail.com",
 		Password: "123test",
 	}
 
-	resp, err := client.SigneUp(context.Background(), connect.NewRequest(req))
+	resp, err := client.SignUp(context.Background(), connect.NewRequest(req))
 	require.NoError(t, err)
 
 	got := resp.Msg.User

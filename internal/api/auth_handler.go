@@ -31,7 +31,7 @@ func NewAuthHandler(l *zap.SugaredLogger, s AuthService) *AuthHandler {
 	}
 }
 
-func (a *AuthHandler) SigneUp(ctx context.Context, c *connect.Request[v1.SigneUpRequest]) (*connect.Response[v1.SigneUpResponse], error) {
+func (a *AuthHandler) SignUp(ctx context.Context, c *connect.Request[v1.SignUpRequest]) (*connect.Response[v1.SignUpResponse], error) {
 	user := UserFromAPI(c.Msg)
 
 	resp, err := a.s.SignUp(ctx, user)
@@ -39,10 +39,10 @@ func (a *AuthHandler) SigneUp(ctx context.Context, c *connect.Request[v1.SigneUp
 		return nil, err
 	}
 
-	return connect.NewResponse(&v1.SigneUpResponse{User: UserToAPI(resp)}), nil
+	return connect.NewResponse(&v1.SignUpResponse{User: UserToAPI(resp)}), nil
 }
 
-func (a *AuthHandler) SigneIn(ctx context.Context, c *connect.Request[v1.SigneInRequest]) (*connect.Response[v1.SigneInResponse], error) {
+func (a *AuthHandler) SignIn(ctx context.Context, c *connect.Request[v1.SignInRequest]) (*connect.Response[v1.SignInResponse], error) {
 	id, err := a.s.SignIn(ctx, c.Msg.Email, c.Msg.Password)
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func (a *AuthHandler) SigneIn(ctx context.Context, c *connect.Request[v1.SigneIn
 		HttpOnly: true,
 	}
 
-	resp := connect.NewResponse(&v1.SigneInResponse{})
+	resp := connect.NewResponse(&v1.SignInResponse{})
 	resp.Header().Set("Set-Cookie", cookie.String())
 
 	return resp, nil
