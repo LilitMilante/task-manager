@@ -7,9 +7,7 @@ import (
 	"task-manager/gen/proto/auth/v1/userv1connect"
 	"task-manager/gen/proto/task/v1/todolistv1connect"
 
-	"github.com/gorilla/mux"
 	"go.uber.org/zap"
-
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )
@@ -19,9 +17,9 @@ type Server struct {
 }
 
 func NewServer(l *zap.SugaredLogger, port string, taskHandler *TaskHandler, authHandler *AuthHandler) *Server {
-	r := mux.NewRouter()
+	r := http.NewServeMux()
 
-	r.Use(LoggingMiddleware(l))
+	logMW := LoggingMiddleware(l)
 
 	authMW := AuthMiddleware(authHandler.s)
 	path, handler := todolistv1connect.NewTaskServiceHandler(taskHandler)
@@ -31,7 +29,7 @@ func NewServer(l *zap.SugaredLogger, port string, taskHandler *TaskHandler, auth
 
 	srv := &http.Server{
 		Addr:    ":" + port,
-		Handler: h2c.NewHandler(r, &http2.Server{}),
+		Handler: h2c.NewHandler(logMW(r), &http2.Server{}),
 	}
 
 	return &Server{
