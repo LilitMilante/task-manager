@@ -16,6 +16,7 @@ import (
 type AuthService interface {
 	SignUp(ctx context.Context, user entity.User) (entity.User, error)
 	SignIn(ctx context.Context, email, password string) (uuid.UUID, error)
+	Auth(ctx context.Context, sessionID uuid.UUID) (entity.User, error)
 }
 
 type AuthHandler struct {

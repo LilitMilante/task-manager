@@ -48,3 +48,19 @@ func (r *Repository) CreateSession(ctx context.Context, session entity.Session) 
 
 	return session.ID, nil
 }
+
+func (r *Repository) UserBySessionID(ctx context.Context, sessionID uuid.UUID) (entity.User, error) {
+	q := `SELECT users.id, users.name, users.email, users.password, users.created_at
+FROM users
+         JOIN sessions ON sessions.user_id = users.id
+WHERE sessions.session_id = $1
+`
+	var user entity.User
+
+	err := r.db.QueryRowContext(ctx, q, sessionID).Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.CreatedAt)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	return user, nil
+}

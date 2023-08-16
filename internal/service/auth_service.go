@@ -14,6 +14,7 @@ type AuthRepository interface {
 	SignIn(ctx context.Context, email, password string) (uuid.UUID, error)
 	CreateSession(ctx context.Context, session entity.Session) (uuid.UUID, error)
 	UserByEmail(ctx context.Context, email string) error
+	UserBySessionID(ctx context.Context, sessionID uuid.UUID) (entity.User, error)
 }
 
 type AuthService struct {
@@ -58,4 +59,8 @@ func (a *AuthService) SignIn(ctx context.Context, email, password string) (uuid.
 	}
 
 	return a.repo.CreateSession(ctx, session)
+}
+
+func (a *AuthService) Auth(ctx context.Context, sessionID uuid.UUID) (entity.User, error) {
+	return a.repo.UserBySessionID(ctx, sessionID)
 }

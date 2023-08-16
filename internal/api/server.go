@@ -23,7 +23,10 @@ func NewServer(l *zap.SugaredLogger, port string, taskHandler *TaskHandler, auth
 
 	r.Use(LoggingMiddleware(l))
 
-	r.Handle(todolistv1connect.NewTaskServiceHandler(taskHandler))
+	authMW := AuthMiddleware(authHandler.s)
+	path, handler := todolistv1connect.NewTaskServiceHandler(taskHandler)
+
+	r.Handle(path, authMW(handler))
 	r.Handle(userv1connect.NewAuthServiceHandler(authHandler))
 
 	srv := &http.Server{
