@@ -1,3 +1,5 @@
+-- +goose Up
+-- +goose StatementBegin
 CREATE TABLE users
 (
     id         UUID PRIMARY KEY,
@@ -6,3 +8,9 @@ CREATE TABLE users
     password   TEXT      NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE users;
+-- +goose StatementEnd

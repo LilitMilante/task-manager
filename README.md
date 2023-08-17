@@ -1,8 +1,6 @@
-1. Добавление задачи.
-2. Редактирование задачи.
-3. Получение списка задач.
-4. Удаление задачи.
+## Create migrations
+`goose -dir ./migrations create your_table sql `
 
-У задачи есть:
- - название
- - описание
+where `your_table` is migration name
+
+
