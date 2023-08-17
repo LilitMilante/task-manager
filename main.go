@@ -13,15 +13,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	port     = "8080"
-	dbHost   = "localhost"
-	dbPort   = 5432
-	user     = "postgres"
-	password = "your-password"
-	dbName   = "task-manager"
-)
-
 func main() {
 	baseLogger, _ := zap.NewDevelopment()
 
@@ -34,8 +25,13 @@ func main() {
 
 	l := baseLogger.Sugar()
 
+	cfg, err := app.NewConfig()
+	if err != nil {
+		l.Panicf("get config: %s", err)
+	}
+
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		dbHost, dbPort, user, password, dbName)
+		cfg.PostgresHost, cfg.PostgresPort, cfg.PostgresUser, cfg.PostgresPassword, cfg.PostgresName)
 
 	db, err := app.ConnectToPostgres(dsn)
 	if err != nil {
@@ -55,8 +51,8 @@ func main() {
 	taskHandler := api.NewTaskHandler(l, taskService)
 	authHandler := api.NewAuthHandler(l, authService)
 
-	server := api.NewServer(l, port, taskHandler, authHandler)
-	l.Infof("server started on %s", port)
+	server := api.NewServer(l, cfg.Port, taskHandler, authHandler)
+	l.Infof("server started on %s", cfg.Port)
 
 	err = server.Start()
 	if err != nil {
