@@ -14,6 +14,7 @@ import (
 	"task-manager/internal/service"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,12 +42,12 @@ func authClient(t *testing.T) userv1connect.AuthServiceClient {
 	return userv1connect.NewAuthServiceClient(http.DefaultClient, server.URL)
 }
 
-func TestAuthHandler_SigneUp(t *testing.T) {
+func TestAuthHandler_SignUp(t *testing.T) {
 	client := authClient(t)
 
 	req := &userv1.SignUpRequest{
 		Name:     "Nasta",
-		Email:    "example@gmail.com",
+		Email:    uuid.NewString() + "@gmail.com",
 		Password: "123test",
 	}
 
@@ -59,4 +60,11 @@ func TestAuthHandler_SigneUp(t *testing.T) {
 	require.Equal(t, req.Name, got.Name)
 	require.Equal(t, req.Email, got.Email)
 	require.NotZero(t, got.CreatedAt)
+
+	signInResp, err := client.SignIn(context.Background(), connect.NewRequest(&userv1.SignInRequest{
+		Email:    req.Email,
+		Password: req.Password,
+	}))
+	require.NoError(t, err)
+	require.NotEmpty(t, signInResp.Header().Get("Set-Cookie"))
 }
