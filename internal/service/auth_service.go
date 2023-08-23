@@ -14,7 +14,7 @@ import (
 type AuthRepository interface {
 	CreateUser(ctx context.Context, user entity.User) error
 	SignIn(ctx context.Context, email, password string) (uuid.UUID, error)
-	CreateSession(ctx context.Context, session entity.Session) (uuid.UUID, error)
+	CreateSession(ctx context.Context, session entity.Session) error
 	UserByEmail(ctx context.Context, email string) error
 	UserBySessionID(ctx context.Context, sessionID uuid.UUID) (entity.User, error)
 }
@@ -60,9 +60,25 @@ func (a *AuthService) SignIn(ctx context.Context, email, password string) (uuid.
 		CreatedAt: time.Now().UTC(),
 	}
 
-	return a.repo.CreateSession(ctx, session)
+	err = a.repo.CreateSession(ctx, session)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	return session.ID, nil
 }
 
 func (a *AuthService) Auth(ctx context.Context, sessionID uuid.UUID) (entity.User, error) {
 	return a.repo.UserBySessionID(ctx, sessionID)
+}
+
+func (a *AuthService) AuthorisedUser(ctx context.Context) (entity.User, error) {
+	value := ctx.Value("user")
+
+	user, ok := value.(entity.User)
+	if !ok {
+		return entity.User{}, ErrUnauthorized
+	}
+
+	return user, nil
 }

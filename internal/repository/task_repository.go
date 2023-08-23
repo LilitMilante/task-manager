@@ -3,8 +3,10 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"task-manager/internal/entity"
+	"task-manager/internal/service"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -23,9 +25,10 @@ func NewRepository(l *zap.SugaredLogger, db *sql.DB) *Repository {
 }
 
 func (r *Repository) AddTask(ctx context.Context, task entity.Task) error {
-	q := `INSERT INTO tasks (id, name, description, is_completed, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)`
+	const q = `INSERT INTO tasks (id, user_id, name, description, is_completed, created_at, updated_at)
+			   VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
-	_, err := r.db.ExecContext(ctx, q, task.ID, task.Name, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt)
+	_, err := r.db.ExecContext(ctx, q, task.ID, task.UserID, task.Name, task.Description, task.IsCompleted, task.CreatedAt, task.UpdatedAt)
 	if err != nil {
 		return err
 	}
@@ -34,20 +37,28 @@ func (r *Repository) AddTask(ctx context.Context, task entity.Task) error {
 }
 
 func (r *Repository) TaskByID(ctx context.Context, id uuid.UUID) (task entity.Task, err error) {
-	q := `SELECT id, name, description, is_completed, created_at, updated_at FROM tasks WHERE id = $1`
+	const q = `SELECT id, user_id, name, description, is_completed, created_at, updated_at
+			   FROM tasks WHERE id = $1`
 
-	err = r.db.QueryRowContext(ctx, q, id).Scan(&task.ID, &task.Name, &task.Description, &task.IsCompleted, &task.CreatedAt, &task.UpdatedAt)
+	err = r.db.QueryRowContext(ctx, q, id).Scan(&task.ID, &task.UserID, &task.Name, &task.Description, &task.IsCompleted, &task.CreatedAt, &task.UpdatedAt)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return entity.Task{}, service.ErrNotFound
+		}
+
 		return entity.Task{}, err
 	}
 
 	return task, nil
 }
 
-func (r *Repository) Tasks(ctx context.Context) (tasks []entity.Task, err error) {
-	q := `SELECT id, name, description, is_completed, created_at, updated_at FROM tasks`
+func (r *Repository) Tasks(ctx context.Context, userID uuid.UUID) (tasks []entity.Task, err error) {
+	const q = `SELECT id, user_id, name, description, is_completed, created_at, updated_at
+		  	   FROM tasks
+		  	   WHERE user_id = $1
+		  	   ORDER BY created_at DESC`
 
-	rows, err := r.db.QueryContext(ctx, q)
+	rows, err := r.db.QueryContext(ctx, q, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +73,7 @@ func (r *Repository) Tasks(ctx context.Context) (tasks []entity.Task, err error)
 	for rows.Next() {
 		var task entity.Task
 
-		err := rows.Scan(&task.ID, &task.Name, &task.Description, &task.IsCompleted, &task.CreatedAt, &task.UpdatedAt)
+		err := rows.Scan(&task.ID, &task.UserID, &task.Name, &task.Description, &task.IsCompleted, &task.CreatedAt, &task.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -74,7 +85,7 @@ func (r *Repository) Tasks(ctx context.Context) (tasks []entity.Task, err error)
 }
 
 func (r *Repository) UpdateTask(ctx context.Context, updateTask entity.TaskUpdated) error {
-	q := `UPDATE tasks SET name = $1, description = $2, is_completed = $3, updated_at = $4 WHERE id = $5`
+	const q = `UPDATE tasks SET name = $1, description = $2, is_completed = $3, updated_at = $4 WHERE id = $5`
 
 	_, err := r.db.ExecContext(ctx, q, updateTask.Name, updateTask.Description, updateTask.IsCompleted, updateTask.UpdatedAt, updateTask.ID)
 	if err != nil {
@@ -85,7 +96,7 @@ func (r *Repository) UpdateTask(ctx context.Context, updateTask entity.TaskUpdat
 }
 
 func (r *Repository) DeleteTask(ctx context.Context, id uuid.UUID) error {
-	q := `DELETE FROM tasks WHERE id = $1`
+	const q = `DELETE FROM tasks WHERE id = $1`
 
 	_, err := r.db.ExecContext(ctx, q, id)
 	if err != nil {

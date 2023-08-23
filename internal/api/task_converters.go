@@ -18,6 +18,7 @@ func TaskFromAPI(request *todolistv1.AddTaskRequest) entity.Task {
 func TaskToAPI(task entity.Task) *todolistv1.Task {
 	return &todolistv1.Task{
 		Id:          task.ID.String(),
+		UserId:      task.UserID.String(),
 		Name:        task.Name,
 		Description: task.Description,
 		IsCompleted: task.IsCompleted,

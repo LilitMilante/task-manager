@@ -42,7 +42,8 @@ func taskClient(t *testing.T) todolistv1connect.TaskServiceClient {
 	})
 
 	repo := repository.NewRepository(l, db)
-	s := service.NewTaskService(repo)
+	auth := service.NewAuthService(repo) // заменить на mock
+	s := service.NewTaskService(repo, auth)
 	h := NewTaskHandler(l, s)
 
 	_, handler := todolistv1connect.NewTaskServiceHandler(h)

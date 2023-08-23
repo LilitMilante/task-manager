@@ -8,6 +8,7 @@ import (
 
 type Task struct {
 	ID          uuid.UUID
+	UserID      uuid.UUID
 	Name        string
 	Description string
 	IsCompleted bool
